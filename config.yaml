@@ -37,12 +37,13 @@ class_order:
   - Obesity_Type_II
   - Obesity_Type_III
 
-# Bornes IMC (a ajuster avec les bornes observees, voir consistency.py)
+# Bornes IMC [min inclus, max exclu[ : seuils OMS (18.5/25/30/35/40) ; coupure Overweight I/II = 26.9,
+# optimale sur le train (voir docs/DECISIONS.md)
 bmi_thresholds:
   Insufficient_Weight: [0, 18.5]
   Normal_Weight: [18.5, 25.0]
-  Overweight_Level_I: [25.0, 27.5]
-  Overweight_Level_II: [27.5, 30.0]
+  Overweight_Level_I: [25.0, 26.9]
+  Overweight_Level_II: [26.9, 30.0]
   Obesity_Type_I: [30.0, 35.0]
   Obesity_Type_II: [35.0, 40.0]
   Obesity_Type_III: [40.0, 100.0]
