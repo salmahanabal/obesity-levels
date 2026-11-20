@@ -1,0 +1,19 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: obesity-levels
+    ports:
+      - "8000:8000"
+    environment:
+      MODEL_SOURCE: joblib
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    profiles: ["mlflow"]
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow.db
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../mlflow.db:/mlflow.db
+      - ../mlruns:/mlruns
