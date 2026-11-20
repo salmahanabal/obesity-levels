@@ -1,0 +1,55 @@
+seed: 42
+test_size: 0.30
+cv_folds: 5
+
+paths:
+  raw_csv: data/raw/ObesityDataSet_raw_and_data_sinthetic.csv
+  clean_csv: data/processed/obesity_clean.csv
+  split_indices: data/processed/split_indices.json
+  models_dir: models
+  figures_dir: reports/figures
+  tables_dir: reports/tables
+
+uci_id: 544
+
+target: NObeyesdad
+weight_col: Weight
+height_col: Height
+
+columns:
+  binary: [family_history_with_overweight, FAVC, SMOKE, SCC]
+  ordinal_text: [CAEC, CALC]
+  ordinal_order: [no, Sometimes, Frequently, Always]
+  nominal: [Gender, MTRANS]
+  numeric: [Age, FCVC, NCP, CH2O, FAF, TUE]
+  ordinal_numeric: [FCVC, NCP, CH2O, FAF, TUE]
+
+# Modalites rares a fusionner (voir docs/DECISIONS.md)
+rare_merge:
+  CALC: {Always: Frequently}
+
+class_order:
+  - Insufficient_Weight
+  - Normal_Weight
+  - Overweight_Level_I
+  - Overweight_Level_II
+  - Obesity_Type_I
+  - Obesity_Type_II
+  - Obesity_Type_III
+
+# Bornes IMC (a ajuster avec les bornes observees, voir consistency.py)
+bmi_thresholds:
+  Insufficient_Weight: [0, 18.5]
+  Normal_Weight: [18.5, 25.0]
+  Overweight_Level_I: [25.0, 27.5]
+  Overweight_Level_II: [27.5, 30.0]
+  Obesity_Type_I: [30.0, 35.0]
+  Obesity_Type_II: [35.0, 40.0]
+  Obesity_Type_III: [40.0, 100.0]
+
+mlflow:
+  tracking_uri: sqlite:///mlflow.db
+  clf_experiment: obesity-classification
+  reg_experiment: obesity-regression
+  clf_model_name: obesity-classifier
+  reg_model_name: obesity-weight-regressor
