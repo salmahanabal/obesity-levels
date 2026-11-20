@@ -19,7 +19,7 @@ height_col: Height
 columns:
   binary: [family_history_with_overweight, FAVC, SMOKE, SCC]
   ordinal_text: [CAEC, CALC]
-  ordinal_order: [no, Sometimes, Frequently, Always]
+  ordinal_order: ["no", Sometimes, Frequently, Always]  # "no" entre guillemets (sinon booleen YAML)
   nominal: [Gender, MTRANS]
   numeric: [Age, FCVC, NCP, CH2O, FAF, TUE]
   ordinal_numeric: [FCVC, NCP, CH2O, FAF, TUE]
