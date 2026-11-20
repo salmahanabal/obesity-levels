@@ -1,0 +1,4 @@
+model,train_mae,train_rmse,train_r2,test_mae,test_rmse,test_r2
+LinearRegression,14.101,17.512,0.554,14.206,18.016,0.524
+Ridge,14.133,17.524,0.553,14.228,18.028,0.523
+Lasso,14.143,17.536,0.552,14.224,18.034,0.523

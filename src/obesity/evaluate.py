@@ -92,3 +92,41 @@ def regression_metrics(y_true, y_pred, prefix: str = "") -> dict[str, float]:
 
 def f1_macro(y_true, y_pred) -> float:
     return float(f1_score(y_true, y_pred, average="macro"))
+
+
+STRENGTHS = {
+    "DecisionTree": "Interprétable, rapide ; tendance au surapprentissage",
+    "KNN": "Simple, sans hypothèse ; sensible à la dimension et au bruit",
+    "SVM": "Bon compromis biais/variance, écart train/test réduit",
+    "RandomForest": "Meilleur score en CV, robuste, importances des variables",
+}
+
+
+def main() -> None:
+    """Tableaux comparatifs (format du cahier des charges) a partir des resultats d'entrainement."""
+    tables = cfg.path("tables_dir")
+    clf = pd.read_csv(tables / "classification_results.csv")
+    clf = clf[~clf["model"].str.endswith("_LEAKAGE")]
+    cmp_ = pd.DataFrame({
+        "Modèle": clf["model"],
+        "Accuracy": clf["test_accuracy"].round(3),
+        "F1-Score": clf["test_f1_macro"].round(3),
+        "Recall": clf["test_recall_macro"].round(3),
+        "Points forts": clf["model"].map(STRENGTHS),
+    })
+    cmp_.to_csv(tables / "model_comparison.csv", index=False)
+    champ = clf.sort_values("cv_f1_macro", ascending=False).iloc[0]["model"]  # choix sur la CV
+    leak = pd.read_csv(tables / "classification_results.csv")
+    leak = leak[leak["model"].str.endswith("_LEAKAGE")]
+    both = pd.concat([clf[clf["model"] == champ], leak])
+    both[["model", "test_accuracy", "test_f1_macro", "test_accuracy_pm1"]].to_csv(
+        tables / "leakage_comparison.csv", index=False)
+    reg = pd.read_csv(tables / "regression_results.csv")
+    reg[["model", "train_mae", "train_rmse", "train_r2", "test_mae", "test_rmse", "test_r2"]].round(3).to_csv(
+        tables / "regression_comparison.csv", index=False)
+    print(cmp_.drop(columns="Points forts").to_string(index=False))
+    print("Champion (CV) :", champ)
+
+
+if __name__ == "__main__":
+    main()

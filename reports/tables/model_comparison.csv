@@ -1,0 +1,5 @@
+Modèle,Accuracy,F1-Score,Recall,Points forts
+DecisionTree,0.715,0.71,0.708,"Interprétable, rapide ; tendance au surapprentissage"
+KNN,0.703,0.685,0.695,"Simple, sans hypothèse ; sensible à la dimension et au bruit"
+SVM,0.753,0.743,0.746,"Bon compromis biais/variance, écart train/test réduit"
+RandomForest,0.785,0.776,0.778,"Meilleur score en CV, robuste, importances des variables"
