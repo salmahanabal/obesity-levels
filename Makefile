@@ -27,6 +27,9 @@ export:
 serve:
 	uvicorn obesity.api.main:app --host 0.0.0.0 --port 8000
 
+ui:
+	streamlit run app/streamlit_app.py
+
 mlflow-ui:
 	mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
 
@@ -41,4 +44,4 @@ docker-build:
 
 all: data train-clf train-reg consistency evaluate export
 
-.PHONY: setup data eda train-clf train-reg consistency evaluate export serve mlflow-ui test lint docker-build all
+.PHONY: ui setup data eda train-clf train-reg consistency evaluate export serve mlflow-ui test lint docker-build all

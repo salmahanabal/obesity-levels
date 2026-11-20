@@ -65,6 +65,15 @@ curl -X POST http://localhost:8000/predict/weight -H "Content-Type: application/
 ```
 `MODEL_SOURCE=registry` charge les modèles depuis le registre MLflow au lieu des fichiers joblib.
 
+## Interface de test (Streamlit)
+```
+pip install -e ".[ui]"
+make ui
+```
+Onglets : téléchargement des données nettoyées/pré-traitées (et des jeux train/test), test sur valeurs
+aléatoires (classifieur A, régression B, classe dérivée C), échantillon réel du test avec vérité terrain,
+saisie manuelle et test d'un CSV téléversé. Nécessite `make all` au préalable.
+
 ## Docker
 ```
 make all
