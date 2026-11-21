@@ -147,7 +147,7 @@ def render(res: pd.DataFrame, truth: pd.Series | None, true_weight: pd.Series | 
         "Confiance": (res["confiance"] * 100).round(0).astype(int).astype(str) + " %"
         if "confiance" in res else "",
         "Poids estimé": res["poids"].round(0).astype(int).astype(str) + " kg",
-        "IMC estimé": res["imc"].round(1),
+        "IMC estimé": res["imc"].map(lambda v: f"{v:.1f}"),
     })
     if wc is not None and wc["n"] > 0:
         real = pd.to_numeric(true_weight.loc[res.index], errors="coerce")
