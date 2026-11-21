@@ -1,0 +1,4 @@
+variante,f1_macro_cv,ecart_type
+"SVC (decision_function_shape='ovr', OvO interne)",0.7296,0.0365
+OneVsRestClassifier(SVC),0.7361,0.0314
+OneVsOneClassifier(SVC),0.7301,0.0405

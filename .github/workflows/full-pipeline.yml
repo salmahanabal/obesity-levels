@@ -1,0 +1,42 @@
+name: full-pipeline
+# Machine propre : make all, notebooks, build Docker et verification de l'API dans le conteneur.
+# Lancement manuel (onglet Actions) ou quand ce fichier / docker/ change.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/full-pipeline.yml"
+      - "docker/**"
+jobs:
+  full:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: make setup
+      - run: make all
+      - run: make test
+      - name: Executer les notebooks
+        run: |
+          cd notebooks
+          for n in 01_exploration 02_preprocessing 03_modeling_and_evaluation 04_critical_analysis; do
+            jupyter nbconvert --to notebook --execute --output-dir /tmp/nb $n.ipynb
+          done
+      - run: make docker-build
+      - name: Demarrer le conteneur et tester l'API
+        run: |
+          docker run -d --name api -p 8000:8000 obesity-levels
+          for i in $(seq 1 30); do curl -sf http://localhost:8000/health && break || sleep 2; done
+          curl -sf http://localhost:8000/health
+          curl -sf -X POST http://localhost:8000/predict/class -H "Content-Type: application/json" \
+            -d '{"Gender":"Female","Age":25,"family_history_with_overweight":"yes","FAVC":"yes","FCVC":2,"NCP":3,"CAEC":"Sometimes","SMOKE":"no","CH2O":2,"SCC":"no","FAF":1,"TUE":1,"CALC":"no","MTRANS":"Public_Transportation"}'
+          curl -sf -X POST http://localhost:8000/predict/weight -H "Content-Type: application/json" \
+            -d '{"Gender":"Female","Age":25,"Height":1.7,"family_history_with_overweight":"yes","FAVC":"yes","FCVC":2,"NCP":3,"CAEC":"Sometimes","SMOKE":"no","CH2O":2,"SCC":"no","FAF":1,"TUE":1,"CALC":"no","MTRANS":"Public_Transportation"}'
+          docker inspect --format '{{.State.Health.Status}}' api || true
+      - if: failure()
+        run: docker logs api || true

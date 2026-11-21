@@ -1,0 +1,14 @@
+{
+  "name": "obesity-levels",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "postCreateCommand": "pip install -e '.[dev,ui]'",
+  "forwardPorts": [8000, 5000, 8501],
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "ms-toolsai.jupyter", "charliermarsh.ruff"]
+    }
+  }
+}
