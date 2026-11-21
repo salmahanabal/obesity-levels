@@ -27,7 +27,9 @@ from reportlab.platypus import (
 
 ROOT = Path(__file__).resolve().parents[1]
 FIG, TAB = ROOT / "reports" / "figures", ROOT / "reports" / "tables"
-OUT = ROOT / "reports" / "rapport_obesity_levels.pdf"
+import os
+
+OUT = Path(os.environ.get("REPORT_OUT", ROOT / "reports" / "rapport_obesity_levels.pdf"))
 
 ttf = Path(matplotlib.get_data_path()) / "fonts" / "ttf"
 pdfmetrics.registerFont(TTFont("DV", str(ttf / "DejaVuSans.ttf")))
@@ -144,9 +146,11 @@ for t in [
 # ------------------------------------------------------------------ modélisation
 p("4. Modélisation et résultats", H1)
 p("4.1 Classification multiclasse (pipeline A)", H2)
-p("Quatre modèles sont optimisés par GridSearchCV (F1 macro, validation croisée stratifiée à 5 plis) : arbre "
-  "de décision, KNN, SVM et forêt aléatoire. Le champion est choisi sur la validation croisée de "
-  "l'apprentissage, jamais sur le test, qui n'est évalué qu'une fois par modèle final.")
+p("Huit modèles sont optimisés par GridSearchCV (F1 macro, validation croisée stratifiée à 5 plis) : les "
+  "quatre du cahier des charges (arbre de décision, KNN, SVM, forêt aléatoire) et quatre ajoutés après les "
+  "premiers résultats (régression logistique, gradient boosting, réseau de neurones MLP et classifieur "
+  "ordinal de Frank et Hall, qui respecte l'ordre des classes). Le champion est choisi sur la validation "
+  "croisée de l'apprentissage, jamais sur le test, qui n'est évalué qu'une fois par modèle final.")
 c = pd.read_csv(TAB / "classification_results.csv")
 main = c[~c["model"].str.endswith("_LEAKAGE")]
 ct = pd.DataFrame({
@@ -155,6 +159,12 @@ ct = pd.DataFrame({
     "Recall macro (test)": main["test_recall_macro"].map(f3), "Accuracy ±1 classe": main["test_accuracy_pm1"].map(f3),
 })
 table(ct, None, "Tableau 2 — Comparaison des classifieurs (pipeline A, sans poids ni taille).")
+p("<b>Effet des modèles ajoutés.</b> Le gradient boosting et la forêt aléatoire sont à égalité en validation "
+  "croisée (0,790 contre 0,789) et sur le test (F1 macro 0,775 contre 0,776) : le gradient boosting est "
+  "champion par la règle de la validation croisée, mais l'écart est dans le bruit. Le réseau de neurones "
+  "(0,726) ne dépasse pas le SVM. Les modèles linéaires (régression logistique 0,554 ; ordinal 0,514) sont "
+  "nettement en dessous : la relation entre habitudes de vie et classe est non linéaire. Changer "
+  "d'algorithme ne lève donc pas le plafond d'environ 0,78, qui tient aux données et non au modèle.")
 sv = pd.read_csv(TAB / "svm_ovr_ovo.csv")
 p("<b>SVM : One-vs-Rest ou One-vs-One.</b> En validation croisée, le F1 macro est de "
   f"{f3(sv.iloc[0, 1])} pour le SVC natif (One-vs-One interne), {f3(sv.iloc[1, 1])} pour One-vs-Rest et "
@@ -176,14 +186,15 @@ fig("model_residuals_ols.png", 15.5, "Figure 2 — Diagnostics de l'OLS : résid
 
 # ------------------------------------------------------------------ évaluation
 p("5. Évaluation", H1)
-p("La forêt aléatoire est le champion (F1 macro de 0,776 sur le test, AUC OvR macro de 0,96). Sa matrice de "
+p("Le gradient boosting est le champion (F1 macro de 0,775 sur le test, AUC OvR macro de 0,96). Sa matrice de "
   "confusion montre que les erreurs se concentrent entre classes voisines, surtout autour du poids normal "
-  "(rappel de 0,56), alors que l'obésité de type III est presque parfaitement reconnue (0,99). Cette "
+  "et du surpoids de niveau I (rappels de 0,65 et 0,59), alors que l'obésité de type III est presque "
+  "parfaitement reconnue (0,99). Cette "
   "performance doit être relativisée : c'est la classe quasi exclusivement féminine (section 6).")
-fig("model_cm_RandomForest.png", 16, "Figure 3 — Matrice de confusion de la forêt aléatoire (comptes et "
+fig("model_cm_GradientBoosting.png", 16, "Figure 3 — Matrice de confusion du gradient boosting (comptes et "
     "normalisée par ligne).")
 p("<b>Cohérence (pipeline C).</b> Prédire le poids puis en déduire la classe donne une accuracy de 0,228 "
-  "(±1 classe : 0,707 ; F1 macro 0,193), contre 0,785 (±1 classe : 0,884) pour la classification directe. "
+  "(±1 classe : 0,707 ; F1 macro 0,193), contre 0,781 (±1 classe : 0,884) pour la classification directe. "
   "Une erreur moyenne de 18 kg sur le poids déplace l'IMC de plusieurs points, souvent d'une classe à "
   "l'autre. Les deux démarches ne sont donc pas cohérentes à l'échelle individuelle : les habitudes de vie "
   "renseignent mieux sur la <i>classe</i> que sur le <i>poids exact</i>.")
@@ -191,28 +202,28 @@ p("<b>Cohérence (pipeline C).</b> Prédire le poids puis en déduire la classe 
 # ------------------------------------------------------------------ analyse critique
 p("6. Analyse critique", H1)
 p("<b>Surapprentissage.</b> L'arbre, le KNN et la forêt atteignent un F1 macro de 0,998 sur l'apprentissage "
-  "contre 0,69 à 0,78 sur le test. La courbe d'apprentissage du classifieur montre une validation encore "
+  "(0,987 pour le gradient boosting) contre 0,69 à 0,78 sur le test ; les modèles linéaires, eux, sous-apprennent "
+  "(0,57 et 0,53 sur l'apprentissage). La courbe d'apprentissage du classifieur montre une validation encore "
   "croissante avec la taille des données, sans rattraper l'apprentissage : le modèle bénéficierait de plus "
   "de données. À l'inverse, pour la régression les courbes se rejoignent à environ −17,5 kg : il n'y a pas "
   "de surapprentissage mais un biais élevé (le modèle linéaire sous-apprend).")
 fig("analysis_learning_curves.png", 15.5, "Figure 4 — Courbes d'apprentissage du classifieur champion et de "
     "la régression champion.")
-p("<b>Données synthétiques.</b> Sur le test, le champion obtient une accuracy de 0,87 (F1 macro 0,74) sur les "
-  "lignes que l'heuristique juge synthétiques, contre 0,52 (F1 macro 0,40) sur les lignes jugées collectées. "
+p("<b>Données synthétiques.</b> Sur le test, le champion obtient une accuracy de 0,86 (F1 macro 0,73) sur les "
+  "lignes que l'heuristique juge synthétiques, contre 0,56 (F1 macro 0,40) sur les lignes jugées collectées. "
   "Les scores globaux sont donc optimistes : SMOTE crée des interpolations proches les unes des autres, "
   "retrouvées à la fois dans l'apprentissage et le test. Ce constat vaut aussi pour la validation croisée.")
-p("<b>Biais de genre.</b> Le F1 macro est de 0,76 pour les femmes et de 0,62 pour les hommes. Le genre est la "
-  "variable la plus importante par permutation sur le test (0,25 de perte de F1) : le modèle l'utilise comme "
+p("<b>Biais de genre.</b> Le F1 macro est de 0,77 pour les femmes et de 0,62 pour les hommes. Le genre est la "
+  "deuxième variable par permutation sur le test (0,19 de perte de F1, après l'âge à 0,34) : le modèle l'utilise comme "
   "raccourci pour les classes quasi exclusivement féminines ou masculines. Son équité n'est pas garantie.")
 imp = pd.read_csv(TAB / "feature_importances.csv").head(6)
 it = pd.DataFrame({
     "Variable": imp["variable"],
     "Permutation (test)": imp["perm_importance_test"].map(f3),
-    "Rang forêt (impureté)": imp["rang_rf_impurity"],
     "Rang régression (|coef.|)": imp["rang_abs_coef_regression"],
 })
-p("<b>Facteurs clés.</b> Les classements diffèrent selon la méthode : l'âge domine l'importance par impureté "
-  "de la forêt, le genre et l'âge dominent par permutation, tandis que la régression retient d'abord "
+p("<b>Facteurs clés.</b> Les classements diffèrent selon la méthode : l'âge puis le genre dominent par "
+  "permutation, tandis que la régression retient d'abord "
   "l'antécédent familial de surpoids (environ 20 kg d'écart), puis le transport et le grignotage. Les "
   "classements sont à interpréter avec prudence : variables corrélées et données synthétiques.")
 table(it, None, "Tableau 4 — Six variables les plus importantes (permutation sur le test) et leurs rangs.")
@@ -245,7 +256,7 @@ for t in [
 # ------------------------------------------------------------------ conclusion
 p("8. Conclusion, limites et recommandations", H1)
 p("Les habitudes de vie permettent de prédire le niveau d'obésité de façon modérée (F1 macro d'environ 0,78 "
-  "pour la forêt aléatoire) mais pas le poids avec précision (erreur d'environ 18 kg), et les deux "
+  "pour le gradient boosting comme pour la forêt aléatoire) mais pas le poids avec précision (erreur d'environ 18 kg), et les deux "
   "modélisations ne sont pas cohérentes individuellement (accuracy de 0,23 pour la classe dérivée du poids).")
 p("<b>Limites.</b> (i) Les trois quarts des données sont synthétiques : les scores sont optimistes et un test "
   "composé uniquement de données collectées serait plus honnête (accuracy de 0,52 mesurée sur ce sous-groupe). "

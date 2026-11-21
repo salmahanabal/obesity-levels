@@ -48,7 +48,8 @@ docker/  tests/  docs/DECISIONS.md  .github/workflows/ci.yml
 ```
 
 ## Résultats (test, 30 %)
-Classification (pipeline A) : F1 macro RF 0,78 · SVM 0,74 · DT 0,71 · KNN 0,69 ; avec fuite : ~0,94 en CV.
+Classification (pipeline A), F1 macro sur le test : gradient boosting 0,775 (champion en CV) · RF 0,776 · SVM 0,743 · MLP 0,726 · DT 0,710 · KNN 0,685 · régression logistique 0,554 · ordinal 0,514 ; avec fuite : ~0,94 en CV.
+Les quatre derniers modèles (gradient boosting, MLP, régression logistique, classifieur ordinal de Frank & Hall) ont été ajoutés après les premiers résultats : le plafond d'environ 0,78 tient aux données, pas à l'algorithme.
 Régression : RMSE ≈ 18 kg, R² ≈ 0,52. Pipeline C : accuracy 0,23, ±1 classe 0,71.
 Détails et limites : notebooks 03 et 04, `docs/DECISIONS.md`.
 

@@ -98,7 +98,11 @@ STRENGTHS = {
     "DecisionTree": "Interprétable, rapide ; tendance au surapprentissage",
     "KNN": "Simple, sans hypothèse ; sensible à la dimension et au bruit",
     "SVM": "Bon compromis biais/variance, écart train/test réduit",
-    "RandomForest": "Meilleur score en CV, robuste, importances des variables",
+    "RandomForest": "Robuste, importances des variables",
+    "LogisticRegression": "Linéaire, interprétable ; limitée sur les relations non linéaires",
+    "GradientBoosting": "Boosting d'arbres, souvent le plus précis sur données tabulaires",
+    "MLP": "Réseau de neurones ; sensible aux hyperparamètres, peu interprétable",
+    "OrdinalLogReg": "Respecte l'ordre des classes ; erreurs surtout entre classes voisines",
 }
 
 
@@ -118,7 +122,8 @@ def main() -> None:
     champ = clf.sort_values("cv_f1_macro", ascending=False).iloc[0]["model"]  # choix sur la CV
     leak = pd.read_csv(tables / "classification_results.csv")
     leak = leak[leak["model"].str.endswith("_LEAKAGE")]
-    both = pd.concat([clf[clf["model"] == champ], leak])
+    # meme algorithme (forêt) avec et sans la fuite, pour une comparaison equitable
+    both = pd.concat([clf[clf["model"] == "RandomForest"], leak])
     both[["model", "test_accuracy", "test_f1_macro", "test_accuracy_pm1"]].to_csv(
         tables / "leakage_comparison.csv", index=False)
     reg = pd.read_csv(tables / "regression_results.csv")

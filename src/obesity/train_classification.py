@@ -8,9 +8,11 @@ import mlflow
 import mlflow.sklearn
 import pandas as pd
 from mlflow.models import infer_signature
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV, StratifiedKFold
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
@@ -18,6 +20,7 @@ from obesity import config as cfg
 from obesity import tracking
 from obesity.data import dataset_hash, load_clean
 from obesity.evaluate import classification_metrics, per_class_report, plot_confusion
+from obesity.ordinal import OrdinalClassifier
 from obesity.preprocessing import load_split, make_pipeline, xy
 
 SEED = cfg.SEED
@@ -46,6 +49,28 @@ MODELS = {
     "RandomForest": (
         RandomForestClassifier(random_state=SEED),
         {"n_estimators": [100, 300], "max_depth": [None, 10, 20], "min_samples_leaf": [1, 3]},
+    ),
+    # Modeles supplementaires (au-dela du cahier des charges)
+    "LogisticRegression": (
+        LogisticRegression(max_iter=3000),
+        {"C": [0.01, 0.1, 1, 10, 100]},
+    ),
+    "GradientBoosting": (
+        HistGradientBoostingClassifier(random_state=SEED),
+        {
+            "learning_rate": [0.05, 0.1],
+            "max_depth": [3, None],
+            "max_leaf_nodes": [15, 31],
+            "l2_regularization": [0.0, 1.0],
+        },
+    ),
+    "MLP": (
+        MLPClassifier(max_iter=1500, random_state=SEED),
+        {"hidden_layer_sizes": [(64,), (128,), (64, 32)], "alpha": [0.0001, 0.01, 0.1]},
+    ),
+    "OrdinalLogReg": (
+        OrdinalClassifier(base=LogisticRegression(max_iter=3000)),
+        {"base__C": [0.01, 0.1, 1, 10, 100]},
     ),
 }
 
