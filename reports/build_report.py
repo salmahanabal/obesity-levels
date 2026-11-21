@@ -253,15 +253,16 @@ for t in [
 # ------------------------------------------------------------------ conclusion
 p("8. Conclusion, limites et recommandations", H1)
 p("Les habitudes de vie permettent de prédire le niveau d'obésité de façon modérée (F1 macro d'environ 0,78 "
-  "pour le gradient boosting comme pour la forêt aléatoire) mais pas le poids avec précision (erreur d'environ 18 kg), et les deux "
+  "pour le gradient boosting comme pour la forêt aléatoire, sans gain avec des modèles plus puissants) mais "
+  "pas le poids avec précision (erreur d'environ 18 kg), et les deux "
   "modélisations ne sont pas cohérentes individuellement (accuracy de 0,23 pour la classe dérivée du poids).")
 p("<b>Limites.</b> (i) Les trois quarts des données sont synthétiques : les scores sont optimistes et un test "
-  "composé uniquement de données collectées serait plus honnête (accuracy de 0,52 mesurée sur ce sous-groupe). "
+  "composé uniquement de données collectées serait plus honnête (accuracy de 0,56 mesurée sur ce sous-groupe). "
   "(ii) Le biais de genre sur les classes extrêmes rend les résultats non transférables. (iii) L'indicateur "
   "de lignes synthétiques est une heuristique. (iv) Le modèle de régression est linéaire et hétéroscédastique.")
 p("<b>Recommandations.</b> Collecter davantage de données réelles et évaluer sur des données non synthétiques ; "
-  "traiter l'IMC comme cible continue ou ordinale plutôt que sept classes indépendantes ; tester des modèles "
-  "ordinaux et des transformations de la cible (log) ; auditer l'équité du modèle par genre avant tout usage.")
+  "traiter l'IMC comme cible continue ou ordinale plutôt que sept classes indépendantes ; tester des approches "
+  "ordinales et des transformations de la cible (log) ; auditer l'équité du modèle par genre avant tout usage.")
 p("<b>Reproductibilité.</b> <i>make setup</i>, <i>make all</i> (données, entraînements, évaluation, export), "
   "<i>make test</i>, <i>make serve</i>, <i>make ui</i> ; graine 42 lue depuis <i>config.yaml</i>. Outil "
   "pédagogique : ce travail ne constitue pas un avis médical.")
@@ -271,7 +272,7 @@ def footer(canvas, doc):
     canvas.saveState()
     canvas.setFont("DV", 7.5)
     canvas.setFillColor(colors.grey)
-    canvas.drawCentredString(A4[0] / 2, 1.1 * cm, f"obesity-levels — Data Mining M1 — page {doc.page}")
+    canvas.drawCentredString(A4[0] / 2, 1.1 * cm, f"obesity-levels — HANABAL Salma — page {doc.page}")
     canvas.restoreState()
 
 
