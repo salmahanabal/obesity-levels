@@ -1,9 +1,6 @@
 Modèle,Accuracy,F1-Score,Recall,Points forts
 DecisionTree,0.715,0.71,0.708,"Interprétable, rapide ; tendance au surapprentissage"
-KNN,0.703,0.685,0.695,"Simple, sans hypothèse ; sensible à la dimension et au bruit"
 SVM,0.753,0.743,0.746,"Bon compromis biais/variance, écart train/test réduit"
 RandomForest,0.785,0.776,0.778,"Robuste, importances des variables"
-LogisticRegression,0.581,0.554,0.569,"Linéaire, interprétable ; limitée sur les relations non linéaires"
 GradientBoosting,0.781,0.775,0.775,"Boosting d'arbres, souvent le plus précis sur données tabulaires"
 MLP,0.732,0.726,0.724,"Réseau de neurones ; sensible aux hyperparamètres, peu interprétable"
-OrdinalLogReg,0.544,0.514,0.531,Respecte l'ordre des classes ; erreurs surtout entre classes voisines

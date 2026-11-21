@@ -138,18 +138,17 @@ for t in [
     "recouvrement."),
     ("<b>Encodage</b> : variables binaires en 0/1 ; grignotage et alcool en ordinal avec l'ordre explicite "
     "no &lt; Sometimes &lt; Frequently &lt; Always ; genre et transport en one-hot (première modalité "
-    "supprimée pour éviter la colinéarité) ; variables numériques standardisées (indispensable pour le KNN, "
-    "le SVM et la comparaison des coefficients)."),
+    "supprimée pour éviter la colinéarité) ; variables numériques standardisées (indispensable pour le SVM, "
+    "le réseau de neurones et la comparaison des coefficients)."),
 ]:
     p("• " + t)
 
 # ------------------------------------------------------------------ modélisation
 p("4. Modélisation et résultats", H1)
 p("4.1 Classification multiclasse (pipeline A)", H2)
-p("Huit modèles sont optimisés par GridSearchCV (F1 macro, validation croisée stratifiée à 5 plis) : les "
-  "quatre du cahier des charges (arbre de décision, KNN, SVM, forêt aléatoire) et quatre ajoutés après les "
-  "premiers résultats (régression logistique, gradient boosting, réseau de neurones MLP et classifieur "
-  "ordinal de Frank et Hall, qui respecte l'ordre des classes). Le champion est choisi sur la validation "
+p("Cinq modèles sont optimisés par GridSearchCV (F1 macro, validation croisée stratifiée à 5 plis) : arbre "
+  "de décision, SVM, forêt aléatoire, et deux ajoutés après les premiers résultats, le gradient boosting et "
+  "le réseau de neurones MLP. Le champion est choisi sur la validation "
   "croisée de l'apprentissage, jamais sur le test, qui n'est évalué qu'une fois par modèle final.")
 c = pd.read_csv(TAB / "classification_results.csv")
 main = c[~c["model"].str.endswith("_LEAKAGE")]
@@ -162,9 +161,8 @@ table(ct, None, "Tableau 2 — Comparaison des classifieurs (pipeline A, sans po
 p("<b>Effet des modèles ajoutés.</b> Le gradient boosting et la forêt aléatoire sont à égalité en validation "
   "croisée (0,790 contre 0,789) et sur le test (F1 macro 0,775 contre 0,776) : le gradient boosting est "
   "champion par la règle de la validation croisée, mais l'écart est dans le bruit. Le réseau de neurones "
-  "(0,726) ne dépasse pas le SVM. Les modèles linéaires (régression logistique 0,554 ; ordinal 0,514) sont "
-  "nettement en dessous : la relation entre habitudes de vie et classe est non linéaire. Changer "
-  "d'algorithme ne lève donc pas le plafond d'environ 0,78, qui tient aux données et non au modèle.")
+  "(0,726) ne dépasse pas le SVM. Changer d'algorithme ne lève donc pas le plafond d'environ 0,78, qui "
+  "tient aux données et non au modèle.")
 sv = pd.read_csv(TAB / "svm_ovr_ovo.csv")
 p("<b>SVM : One-vs-Rest ou One-vs-One.</b> En validation croisée, le F1 macro est de "
   f"{f3(sv.iloc[0, 1])} pour le SVC natif (One-vs-One interne), {f3(sv.iloc[1, 1])} pour One-vs-Rest et "
@@ -201,9 +199,8 @@ p("<b>Cohérence (pipeline C).</b> Prédire le poids puis en déduire la classe 
 
 # ------------------------------------------------------------------ analyse critique
 p("6. Analyse critique", H1)
-p("<b>Surapprentissage.</b> L'arbre, le KNN et la forêt atteignent un F1 macro de 0,998 sur l'apprentissage "
-  "(0,987 pour le gradient boosting) contre 0,69 à 0,78 sur le test ; les modèles linéaires, eux, sous-apprennent "
-  "(0,57 et 0,53 sur l'apprentissage). La courbe d'apprentissage du classifieur montre une validation encore "
+p("<b>Surapprentissage.</b> L'arbre et la forêt atteignent un F1 macro de 0,998 sur l'apprentissage "
+  "(0,987 pour le gradient boosting, 0,96 pour le MLP) contre 0,71 à 0,78 sur le test. La courbe d'apprentissage du classifieur montre une validation encore "
   "croissante avec la taille des données, sans rattraper l'apprentissage : le modèle bénéficierait de plus "
   "de données. À l'inverse, pour la régression les courbes se rejoignent à environ −17,5 kg : il n'y a pas "
   "de surapprentissage mais un biais élevé (le modèle linéaire sous-apprend).")

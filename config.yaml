@@ -9,6 +9,10 @@ paths:
   models_dir: models
   figures_dir: reports/figures
   tables_dir: reports/tables
+  private_dir: reports/private  # resultats gardes en prive (non versionnes)
+
+# Modeles entraines et suivis dans MLflow, mais dont les resultats ne sont pas publies
+private_models: [KNN, LogisticRegression, OrdinalLogReg]
 
 uci_id: 544
 

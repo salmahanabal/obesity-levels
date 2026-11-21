@@ -96,13 +96,10 @@ def f1_macro(y_true, y_pred) -> float:
 
 STRENGTHS = {
     "DecisionTree": "Interprétable, rapide ; tendance au surapprentissage",
-    "KNN": "Simple, sans hypothèse ; sensible à la dimension et au bruit",
     "SVM": "Bon compromis biais/variance, écart train/test réduit",
     "RandomForest": "Robuste, importances des variables",
-    "LogisticRegression": "Linéaire, interprétable ; limitée sur les relations non linéaires",
     "GradientBoosting": "Boosting d'arbres, souvent le plus précis sur données tabulaires",
     "MLP": "Réseau de neurones ; sensible aux hyperparamètres, peu interprétable",
-    "OrdinalLogReg": "Respecte l'ordre des classes ; erreurs surtout entre classes voisines",
 }
 
 

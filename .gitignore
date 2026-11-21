@@ -15,3 +15,5 @@ models/*
 !models/.gitkeep
 mlruns/
 mlflow.db
+reports/private/
+make_all.log

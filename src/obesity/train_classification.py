@@ -119,7 +119,7 @@ def log_run(name: str, gs: GridSearchCV, train: pd.DataFrame, test: pd.DataFrame
     test_m = classification_metrics(y_te, pred, proba, classes)
     train_m = classification_metrics(y_tr, gs.predict(X_tr))
     run_name = f"{name}{'_LEAKAGE' if leakage else ''}"
-    fig_dir = cfg.path("figures_dir")
+    fig_dir = cfg.path("private_dir" if name in cfg.load_config()["private_models"] else "figures_dir")
     fig_dir.mkdir(parents=True, exist_ok=True)
     cm_path = fig_dir / f"model_cm_{run_name}.png"
     plot_confusion(y_te, pred, cm_path, run_name)
@@ -162,11 +162,18 @@ def main(names: list[str] | None = None) -> pd.DataFrame:
     leak_cols = [*xy(train, "classification")[0].columns, "Weight", "Height"]
     gs = fit_model("RandomForest", train, leak_cols)
     rows.append(log_run("RandomForest", gs, train, test, ds_hash, leakage=True))
-    out = pd.DataFrame(rows)
-    tables = cfg.path("tables_dir")
-    tables.mkdir(parents=True, exist_ok=True)
-    out.to_csv(tables / "classification_results.csv", index=False)
-    return out
+    return write_results(pd.DataFrame(rows))
+
+
+def write_results(out: pd.DataFrame) -> pd.DataFrame:
+    """Publie les resultats des modeles publics ; les modeles prives vont dans reports/private/ (non versionne)."""
+    private = out["model"].isin(cfg.load_config()["private_models"])
+    for key, part, fname in (("tables_dir", out[~private], "classification_results.csv"),
+                             ("private_dir", out[private], "classification_results_private.csv")):
+        d = cfg.path(key)
+        d.mkdir(parents=True, exist_ok=True)
+        part.to_csv(d / fname, index=False)
+    return out[~private]
 
 
 if __name__ == "__main__":
