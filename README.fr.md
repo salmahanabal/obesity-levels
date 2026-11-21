@@ -155,8 +155,8 @@ Prédire le poids puis en déduire la classe donne une accuracy de **0,23** (0,7
 
 Une application Streamlit pour essayer les modèles sans écrire de code (`make ui`). Elle a deux onglets :
 
-- **Données.** Téléchargement des données nettoyées, pré-traitées, d'entraînement et de test, ou téléversement de votre propre CSV. Les résultats s'affichent en figures expliquées pour des non-spécialistes (répartition des classes, confiance, distribution du poids, matrice de confusion si la vraie classe est présente) et ne sont pas téléchargeables.
-- **Saisie manuelle.** Un guide explique chaque variable, puis un formulaire prédit le niveau d'obésité, le poids et l'IMC d'une personne, avec la probabilité de chaque classe.
+- **Données.** Téléchargement des données nettoyées, pré-traitées, d'entraînement et de test, ou téléversement de votre propre CSV. Les résultats s'affichent en figures expliquées pour des non-spécialistes (répartition des classes, confiance, distribution du poids, matrice de confusion si la vraie classe est présente) et ne sont pas téléchargeables. Si le fichier contient la colonne `Weight` d'origine, le poids estimé est comparé au vrai poids (erreur moyenne, part à ±10 kg, nuage de points estimé contre réel et histogramme des erreurs). Le vrai poids n'est jamais donné aux modèles : il sert uniquement à la comparaison.
+- **Saisie manuelle.** Un guide explique chaque variable, puis un formulaire prédit le niveau d'obésité, le poids et l'IMC d'une personne, avec la probabilité de chaque classe. Vous pouvez saisir en option le vrai poids de la personne pour voir l'écart avec l'estimation.
 
 Elle nécessite d'avoir lancé `make all` au préalable.
 
@@ -250,7 +250,7 @@ docker compose -f docker/docker-compose.yml up --build
 
 ## Qualité
 
-- 30 tests `pytest` : découpage, préprocessing, absence de fuite, seuils d'IMC, pipelines, API, textes de l'interface.
+- 33 tests `pytest` : découpage, préprocessing, absence de fuite, seuils d'IMC, pipelines, API, textes de l'interface.
 - `ruff` pour le lint.
 - GitHub Actions : `ci.yml` lance lint et tests à chaque push. `full-pipeline.yml` rejoue tout sur une machine propre (`make all`, les quatre notebooks, la construction de l'image Docker et des appels à l'API dans le conteneur).
 

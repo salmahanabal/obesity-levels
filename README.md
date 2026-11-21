@@ -155,8 +155,8 @@ Predicting the weight and then deriving the class gives an accuracy of **0.23** 
 
 A Streamlit app to try the models without writing code (`make ui`). It has two tabs:
 
-- **Data.** Download the cleaned, preprocessed, training and test data, or upload your own CSV. The results are shown as figures explained for non-specialists (class distribution, confidence, weight distribution, confusion matrix when the true class is present) and cannot be downloaded.
-- **Manual input.** A guide explains every variable, then a form predicts the obesity level, the weight and the BMI of one person, with the probability of each class.
+- **Data.** Download the cleaned, preprocessed, training and test data, or upload your own CSV. The results are shown as figures explained for non-specialists (class distribution, confidence, weight distribution, confusion matrix when the true class is present) and cannot be downloaded. If the file contains the original `Weight` column, the estimated weight is compared with the real one (mean error, share within ±10 kg, estimated-versus-real scatter plot and error histogram). The real weight is never given to the models; it is only used for the comparison.
+- **Manual input.** A guide explains every variable, then a form predicts the obesity level, the weight and the BMI of one person, with the probability of each class. You can optionally enter the person's real weight to see the gap with the estimate.
 
 It needs `make all` to have been run first.
 
@@ -250,7 +250,7 @@ docker compose -f docker/docker-compose.yml up --build
 
 ## Quality
 
-- 30 `pytest` tests: split, preprocessing, absence of leakage, BMI thresholds, pipelines, API, interface texts.
+- 33 `pytest` tests: split, preprocessing, absence of leakage, BMI thresholds, pipelines, API, interface texts.
 - `ruff` for linting.
 - GitHub Actions: `ci.yml` runs lint and tests on every push. `full-pipeline.yml` replays everything on a clean machine (`make all`, the four notebooks, the Docker build and API calls inside the container).
 

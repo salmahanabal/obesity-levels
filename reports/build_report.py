@@ -246,7 +246,8 @@ for t in [
     "l'ensemble (<i>make all</i>, notebooks, construction de l'image Docker et appel de l'API dans le "
     "conteneur)."),
     ("<b>Interface Streamlit</b> : téléchargement des données nettoyées et pré-traitées, test d'un fichier "
-    "CSV avec résultats commentés, saisie manuelle avec guide des variables."),
+    "CSV avec résultats commentés (y compris comparaison du poids estimé au vrai poids d'origine, qui "
+    "n'est jamais donné aux modèles), saisie manuelle avec guide des variables."),
 ]:
     p("• " + t)
 

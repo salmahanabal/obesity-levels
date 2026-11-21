@@ -13,6 +13,7 @@ from sklearn.metrics import confusion_matrix
 from obesity import config as cfg
 from obesity.consistency import bmi
 from obesity.evaluate import accuracy_pm1
+from obesity.ui.compare import weight_comparison
 from obesity.ui.text import fr_class
 
 ORDER = cfg.load_config()["class_order"]
@@ -36,7 +37,7 @@ def _show(fig) -> None:
     plt.close(fig)
 
 
-def render(res: pd.DataFrame, truth: pd.Series | None) -> None:
+def render(res: pd.DataFrame, truth: pd.Series | None, true_weight: pd.Series | None = None) -> None:
     """Resume, figures et explications."""
     n = len(res)
     top = res["classe"].value_counts().idxmax()
@@ -81,6 +82,34 @@ def render(res: pd.DataFrame, truth: pd.Series | None) -> None:
             "partir de ses habitudes et de sa taille. **Attention :** il se trompe en moyenne "
             "d'environ 18 kg. C'est une estimation grossière, à ne jamais prendre pour une mesure.")
 
+    wc = weight_comparison(res["poids"], true_weight) if true_weight is not None else None
+    if wc is not None and wc["n"] > 0:
+        st.markdown("#### Comparaison avec le vrai poids")
+        a, b, c = st.columns(3)
+        a.metric("Erreur moyenne", f"{wc['mae']:.1f} kg")
+        b.metric("Estimation à ±10 kg", f"{wc['within10']:.0%}")
+        c.metric("Part de variation expliquée (R²)", f"{wc['r2']:.2f}")
+        fig, ax = plt.subplots(1, 2, figsize=(11, 4))
+        lo, hi = float(min(wc["real"].min(), wc["pred"].min())), float(max(wc["real"].max(), wc["pred"].max()))
+        ax[0].scatter(wc["real"], wc["pred"], s=10, alpha=0.5, color="#4C9BE8")
+        ax[0].plot([lo, hi], [lo, hi], color="#D1495B", lw=1.5, label="estimation parfaite")
+        ax[0].set(xlabel="Vrai poids (kg)", ylabel="Poids estimé (kg)", title="Estimé contre réel")
+        ax[0].legend()
+        ax[1].hist(wc["error"], bins=25, color="#52B788", edgecolor="white")
+        ax[1].axvline(0, color="#D1495B", lw=1.5)
+        ax[1].set(xlabel="Estimé − réel (kg)", ylabel="Nombre de personnes", title="Erreurs d'estimation")
+        fig.tight_layout()
+        _show(fig)
+        st.info("**Comment lire ces graphiques :** à gauche, chaque point est une personne. Plus il est "
+                "proche de la ligne rouge, plus l'estimation est juste ; au-dessus, le modèle "
+                "surestime, en dessous il sous-estime. À droite, la répartition des erreurs : "
+                "centrée sur 0 mais étalée, avec des erreurs de 20 kg ou plus pour certaines "
+                "personnes. Le modèle ne connaît ni le poids ni l'IMC, seulement la taille et les "
+                "habitudes de vie : il ne peut donc donner qu'un ordre de grandeur.")
+    elif true_weight is None:
+        st.caption("Votre fichier ne contient pas la colonne `Weight` (vrai poids) : impossible de "
+                   "comparer le poids estimé au poids réel. Ajoutez-la pour obtenir cette comparaison.")
+
     if truth is not None:
         st.markdown("### 4. Le modèle a-t-il raison ? (comparaison avec les vraies réponses)")
         t = truth.loc[res.index]
@@ -119,7 +148,12 @@ def render(res: pd.DataFrame, truth: pd.Series | None) -> None:
         if "confiance" in res else "",
         "Poids estimé": res["poids"].round(0).astype(int).astype(str) + " kg",
         "IMC estimé": res["imc"].round(1),
-    }).head(20)
+    })
+    if wc is not None and wc["n"] > 0:
+        real = pd.to_numeric(true_weight.loc[res.index], errors="coerce")
+        show["Vrai poids"] = real.round(0).map(lambda v: "" if pd.isna(v) else f"{int(v)} kg")
+        show["Écart"] = (res["poids"] - real).round(0).map(lambda v: "" if pd.isna(v) else f"{int(v):+d} kg")
+    show = show.head(20)
     st.table(show)
     st.caption("L'IMC (indice de masse corporelle) = poids ÷ taille². En dessous de 18,5 : poids "
                "insuffisant ; 18,5 à 25 : normal ; 25 à 30 : surpoids ; 30 et plus : obésité. "

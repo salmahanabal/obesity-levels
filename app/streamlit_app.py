@@ -62,6 +62,9 @@ with tab1:
     b2.download_button("Données pré-traitées (CSV)", csv(X_pre), "obesity_preprocessed.csv", "text/csv")
     b3.download_button("Jeu de test (nettoyé)", csv(test), "obesity_test.csv", "text/csv")
     b4.download_button("Jeu d'entraînement (nettoyé)", csv(train), "obesity_train.csv", "text/csv")
+    st.caption("Le poids d'origine (`Weight`) est conservé dans les données nettoyées, d'entraînement et de "
+               "test. Il n'est pas dans les données pré-traitées du pipeline A, qui n'utilise ni le poids "
+               "ni la taille.")
     st.markdown("**Aperçu des données pré-traitées**")
     st.dataframe(X_pre.head(20), width="stretch")
 
@@ -70,7 +73,9 @@ with tab1:
                "modèles analysent chaque personne et les résultats s'affichent ici sous forme de "
                "graphiques expliqués. Colonnes attendues : celles décrites dans l'onglet « Saisie "
                "manuelle » (dont la taille `Height`). Facultatif : la colonne `NObeyesdad` (vrai "
-               "niveau) permet de vérifier si le modèle a raison.")
+               "niveau) et la colonne `Weight` (vrai poids d'origine du jeu de données) permettent de "
+               "vérifier si les modèles ont raison. Le vrai poids n'est jamais donné aux modèles : il "
+               "sert uniquement à la comparaison. Le fichier « Jeu de test (nettoyé) » contient les deux.")
     up = st.file_uploader("Fichier CSV", type="csv")
     if up is not None:
         data = pd.read_csv(up)
@@ -80,7 +85,8 @@ with tab1:
         else:
             data = normalise(data)
             truth = data[TARGET] if TARGET in data.columns else None
-            results.render(results.predict_frame(clf, reg, data), truth)
+            true_weight = data[cfg.load_config()["weight_col"]] if cfg.load_config()["weight_col"] in data.columns else None
+            results.render(results.predict_frame(clf, reg, data), truth, true_weight)
 
 with tab2:
     st.subheader("Saisie manuelle : testez une personne")
@@ -120,6 +126,10 @@ with tab2:
     classe = clf.predict(person[list(clf.feature_names_in_)])[0]
     poids = float(reg.predict(person[list(reg.feature_names_in_)])[0])
     imc = float(bmi(poids, vals["Height"]))
+    real_w = None
+    if st.checkbox("Je connais le vrai poids de cette personne : comparer avec l'estimation"):
+        real_w = st.number_input("Vrai poids (kg)", 30.0, 250.0, 70.0, step=1.0,
+                                 help="Sert uniquement à la comparaison, jamais au calcul de la prédiction.")
     st.divider()
     st.markdown("### Résultat")
     r1, r2 = st.columns(2)
@@ -127,6 +137,14 @@ with tab2:
                "(sans le poids ni la taille).")
     r2.info(f"**Poids estimé : {poids:.0f} kg** (IMC {imc:.1f})\n\nÀ ± 18 kg environ : c'est une "
             "estimation grossière.")
+    if real_w is not None:
+        diff = poids - real_w
+        d1, d2, d3 = st.columns(3)
+        d1.metric("Poids estimé", f"{poids:.0f} kg")
+        d2.metric("Vrai poids", f"{real_w:.0f} kg")
+        d3.metric("Écart", f"{diff:+.0f} kg")
+        st.caption("Une erreur de l'ordre de 18 kg est normale pour ce modèle : il ne connaît pas le poids, "
+                   "seulement la taille et les habitudes de vie.")
     if hasattr(clf, "predict_proba"):
         p = pd.Series(clf.predict_proba(person[list(clf.feature_names_in_)])[0], index=clf.classes_)
         p = p.reindex(cfg.load_config()["class_order"]).fillna(0)
