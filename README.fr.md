@@ -19,22 +19,22 @@
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/Arbre_de_d%C3%A9cision-5E35B1?style=for-the-badge" alt="Arbre de décision">
-  <img src="https://img.shields.io/badge/SVM-5E35B1?style=for-the-badge" alt="SVM">
-  <img src="https://img.shields.io/badge/Random_Forest-2E7D32?style=for-the-badge" alt="Random Forest">
-  <img src="https://img.shields.io/badge/Gradient_Boosting-EF6C00?style=for-the-badge" alt="Gradient Boosting">
-  <img src="https://img.shields.io/badge/MLP-C2185B?style=for-the-badge" alt="MLP">
+  <a href="https://scikit-learn.org/stable/modules/tree.html"><img src="https://img.shields.io/badge/Arbre_de_d%C3%A9cision-5E35B1?style=for-the-badge" alt="Arbre de décision"></a>
+  <a href="https://scikit-learn.org/stable/modules/svm.html"><img src="https://img.shields.io/badge/SVM-5E35B1?style=for-the-badge" alt="SVM"></a>
+  <a href="https://scikit-learn.org/stable/modules/ensemble.html#forest"><img src="https://img.shields.io/badge/Random_Forest-2E7D32?style=for-the-badge" alt="Random Forest"></a>
+  <a href="https://scikit-learn.org/stable/modules/ensemble.html#histogram-based-gradient-boosting"><img src="https://img.shields.io/badge/Gradient_Boosting-EF6C00?style=for-the-badge" alt="Gradient Boosting"></a>
+  <a href="https://scikit-learn.org/stable/modules/neural_networks_supervised.html"><img src="https://img.shields.io/badge/MLP-C2185B?style=for-the-badge" alt="MLP"></a>
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white" alt="scikit-learn">
-  <img src="https://img.shields.io/badge/pandas-150458?style=for-the-badge&logo=pandas&logoColor=white" alt="pandas">
-  <img src="https://img.shields.io/badge/MLflow-0194E2?style=for-the-badge&logo=mlflow&logoColor=white" alt="MLflow">
-  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
-  <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit">
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
-  <img src="https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white" alt="Jupyter">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://scikit-learn.org/"><img src="https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white" alt="scikit-learn"></a>
+  <a href="https://pandas.pydata.org/"><img src="https://img.shields.io/badge/pandas-150458?style=for-the-badge&logo=pandas&logoColor=white" alt="pandas"></a>
+  <a href="https://mlflow.org/"><img src="https://img.shields.io/badge/MLflow-0194E2?style=for-the-badge&logo=mlflow&logoColor=white" alt="MLflow"></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"></a>
+  <a href="https://streamlit.io/"><img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit"></a>
+  <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"></a>
+  <a href="https://jupyter.org/"><img src="https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white" alt="Jupyter"></a>
 </p>
 
 </div>
