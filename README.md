@@ -34,6 +34,7 @@ Sans réseau : déposer `ObesityDataSet_raw_and_data_sinthetic.csv` dans `data/r
 | `make serve` | API sur le port 8000 |
 | `make mlflow-ui` | interface MLflow sur le port 5000 |
 | `make test` / `make lint` | pytest / ruff |
+| `make report` | génère `reports/rapport_obesity_levels.pdf` (`pip install -e ".[report]"`) |
 | `make docker-build` | image Docker (lancer `make all` avant) |
 | `make all` | data → entraînement → évaluation → export |
 
