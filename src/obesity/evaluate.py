@@ -104,7 +104,7 @@ STRENGTHS = {
 
 
 def main() -> None:
-    """Tableaux comparatifs (format du cahier des charges) a partir des resultats d'entrainement."""
+    """Tableaux comparatifs a partir des resultats d'entrainement."""
     tables = cfg.path("tables_dir")
     clf = pd.read_csv(tables / "classification_results.csv")
     clf = clf[~clf["model"].str.endswith("_LEAKAGE")]

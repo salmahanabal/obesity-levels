@@ -50,7 +50,7 @@ MODELS = {
         RandomForestClassifier(random_state=SEED),
         {"n_estimators": [100, 300], "max_depth": [None, 10, 20], "min_samples_leaf": [1, 3]},
     ),
-    # Modeles supplementaires (au-dela du cahier des charges)
+    # Modeles supplementaires
     "LogisticRegression": (
         LogisticRegression(max_iter=3000),
         {"C": [0.01, 0.1, 1, 10, 100]},

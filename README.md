@@ -63,7 +63,7 @@
 
 ## Overview
 
-This is a Data Mining project (Master 1). It follows the whole workflow **exploration, preprocessing, modeling, evaluation, critical analysis** on the UCI dataset *Estimation of Obesity Levels Based on Eating Habits and Physical Condition*, then adds a light MLOps layer around it.
+This project follows the whole workflow **exploration, preprocessing, modeling, evaluation, critical analysis** on the UCI dataset *Estimation of Obesity Levels Based on Eating Habits and Physical Condition*, then adds a light MLOps layer around it.
 
 Three questions are answered:
 
@@ -257,7 +257,7 @@ docker compose -f docker/docker-compose.yml up --build
 ## Limitations
 
 - About 77 % of the data is synthetic, so the scores are optimistic, including the cross-validation scores.
-- A single split is used, as required. The test score therefore has some variance, and the gap between the two best models is not significant.
+- A single split is used. The test score therefore has some variance, and the gap between the two best models is not significant.
 - The class is derived from weight and height, which the classifier cannot see. A ceiling of about 0.78 macro F1 is expected.
 - The model uses gender as a shortcut for two classes, and its fairness between men and women is not guaranteed.
 - The data come from three countries and describe self-reported habits. The models are a teaching exercise, not a medical tool.

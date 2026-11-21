@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "obesity-levels"
 version = "0.1.0"
-description = "Data Mining M1 - classification multiclasse et regression lineaire des niveaux d'obesite, avec MLOps leger"
+description = "Classification multiclasse et regression lineaire des niveaux d'obesite, avec MLOps leger"
 requires-python = ">=3.11"
 dependencies = [
     "pandas>=2.2",

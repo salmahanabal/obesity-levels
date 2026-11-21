@@ -63,7 +63,7 @@
 
 ## Présentation
 
-Projet de Data Mining (Master 1). Il suit tout le flux **exploration, préprocessing, modélisation, évaluation, analyse critique** sur le jeu de données UCI *Estimation of Obesity Levels Based on Eating Habits and Physical Condition*, puis ajoute une couche MLOps légère.
+Ce projet suit tout le flux **exploration, préprocessing, modélisation, évaluation, analyse critique** sur le jeu de données UCI *Estimation of Obesity Levels Based on Eating Habits and Physical Condition*, puis ajoute une couche MLOps légère.
 
 Trois questions sont traitées :
 
@@ -257,7 +257,7 @@ docker compose -f docker/docker-compose.yml up --build
 ## Limites
 
 - Environ 77 % des données sont synthétiques : les scores sont optimistes, y compris ceux de la validation croisée.
-- Un seul découpage est utilisé, comme demandé. Le score de test a donc une certaine variance, et l'écart entre les deux meilleurs modèles n'est pas significatif.
+- Un seul découpage est utilisé. Le score de test a donc une certaine variance, et l'écart entre les deux meilleurs modèles n'est pas significatif.
 - La classe est dérivée du poids et de la taille, que le classifieur ne voit pas : un plafond d'environ 0,78 de F1 macro est attendu.
 - Le modèle utilise le genre comme raccourci pour deux classes, et son équité entre hommes et femmes n'est pas garantie.
 - Les données viennent de trois pays et décrivent des habitudes déclarées. Les modèles sont un exercice pédagogique, pas un outil médical.
