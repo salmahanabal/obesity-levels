@@ -55,6 +55,12 @@ Détails et limites : notebooks 03 et 04, `docs/DECISIONS.md`.
 `make mlflow-ui` puis ouvrir http://localhost:5000 : expériences `obesity-classification` et
 `obesity-regression`, modèles `obesity-classifier` et `obesity-weight-regressor` (alias `champion`).
 
+Captures :
+
+![Runs de classification](docs/images/mlflow_classification_runs.jpg)
+![Runs de régression](docs/images/mlflow_regression_runs.jpg)
+![Registre des modèles (alias champion)](docs/images/mlflow_registry_champion.jpg)
+
 ## API
 ```
 curl http://localhost:8000/health
