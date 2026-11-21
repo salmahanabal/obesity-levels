@@ -82,8 +82,8 @@ def f3(x):
 
 # ------------------------------------------------------------------ page de titre
 p("Prédire le niveau d'obésité et le poids à partir des habitudes de vie", TITLE)
-p("Classification multiclasse, régression linéaire et MLOps léger — Projet Data Mining M1", H2)
-p("Équipe : <i>[à compléter : noms des étudiants]</i> · Dépôt : github.com/salmahanabal/obesity-levels", CAP)
+p("Classification multiclasse, régression linéaire et MLOps léger", H2)
+p("Réalisé par HANABAL Salma · Dépôt : github.com/salmahanabal/obesity-levels", CAP)
 story.append(Spacer(1, 6))
 
 p("1. Introduction et problématique", H1)
@@ -268,6 +268,6 @@ def footer(canvas, doc):
 
 
 SimpleDocTemplate(str(OUT), pagesize=A4, leftMargin=2 * cm, rightMargin=2 * cm, topMargin=1.8 * cm,
-                  bottomMargin=1.8 * cm, title="obesity-levels — rapport", author="Équipe Data Mining M1"
+                  bottomMargin=1.8 * cm, title="obesity-levels — rapport", author="HANABAL Salma"
                   ).build(story, onFirstPage=footer, onLaterPages=footer)
 print("écrit :", OUT)
