@@ -70,9 +70,10 @@ curl -X POST http://localhost:8000/predict/weight -H "Content-Type: application/
 pip install -e ".[ui]"
 make ui
 ```
-Onglets : téléchargement des données nettoyées/pré-traitées (et des jeux train/test), test sur valeurs
-aléatoires (classifieur A, régression B, classe dérivée C), échantillon réel du test avec vérité terrain,
-saisie manuelle et test d'un CSV téléversé. Nécessite `make all` au préalable.
+Deux onglets : **Données** (téléchargement des données nettoyées, pré-traitées, train et test ; test d'un
+CSV téléversé avec résultats en figures expliquées pour non-spécialistes, sans téléchargement) et
+**Saisie manuelle** (guide de toutes les variables, prédiction du niveau, du poids et de l'IMC).
+Nécessite `make all` au préalable.
 
 ## Docker
 ```
