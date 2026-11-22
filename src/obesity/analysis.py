@@ -25,6 +25,11 @@ def load_models():
     return joblib.load(d / "classifier.joblib"), joblib.load(d / "regressor.joblib")
 
 
+def load_linear():
+    """Meilleure regression lineaire (pour les coefficients), meme si le champion est non lineaire."""
+    return joblib.load(cfg.path("models_dir") / "regressor_linear.joblib")
+
+
 def raw_proxy(df: pd.DataFrame) -> pd.Series:
     """Proxy de synthetique : calcule sur le brut, car le nettoyage arrondit les ordinales."""
     from obesity.data import load_raw
@@ -95,6 +100,25 @@ def synthetic_split(clf, df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).round(3)
 
 
+def regression_synthetic_split(models: dict, df: pd.DataFrame) -> pd.DataFrame:
+    """Erreur de poids (RMSE, MAE, R2) par modele selon le proxy de synthetique : les lignes synthetiques
+    sont des interpolations proches du train, donc plus faciles pour les modeles non lineaires."""
+    from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
+
+    _, test = load_split(df)
+    flag = raw_proxy(df).loc[test.index]
+    w = cfg.load_config()["weight_col"]
+    rows = []
+    for name, model in models.items():
+        for val, group in ((True, "synthetique (proxy)"), (False, "collecte (proxy)")):
+            s = test[flag == val]
+            pred = model.predict(s[list(model.feature_names_in_)])
+            rows.append({"modele": name, "groupe": group, "n": len(s),
+                         "rmse": root_mean_squared_error(s[w], pred),
+                         "mae": mean_absolute_error(s[w], pred), "r2": r2_score(s[w], pred)})
+    return pd.DataFrame(rows).round(3)
+
+
 def gender_metrics(clf, df: pd.DataFrame) -> pd.DataFrame:
     _, test = load_split(df)
     t = cfg.load_config()["target"]
@@ -126,8 +150,9 @@ def importances(clf, reg, df: pd.DataFrame) -> pd.DataFrame:
         agg = {v: imp[[n for n in names if n == v or n.startswith(v + "_")]].sum()
                for v in clf.feature_names_in_}
         out["rf_impurity"] = out["variable"].map(agg)
-    coefs = pd.Series(np.abs(reg.named_steps["model"].coef_),
-                      index=reg.named_steps["prep"].get_feature_names_out())
+    lin = reg if hasattr(reg.named_steps["model"], "coef_") else load_linear()
+    coefs = pd.Series(np.abs(lin.named_steps["model"].coef_),
+                      index=lin.named_steps["prep"].get_feature_names_out())
     agg_r = {v: coefs[[n for n in coefs.index if n == v or n.startswith(v + "_")]].sum()
              for v in clf.feature_names_in_}
     out["abs_coef_regression"] = out["variable"].map(agg_r)

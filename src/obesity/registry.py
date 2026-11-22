@@ -28,6 +28,13 @@ def main() -> None:
         version = register(run_id, name)
         joblib.dump(mlflow.sklearn.load_model(f"runs:/{run_id}/model"), out / fname)
         print(f"{name} v{version} (alias champion) -> {out / fname}")
+    # meilleure regression lineaire, gardee pour les coefficients (le champion peut etre non lineaire)
+    from obesity.train_regression import LINEAR
+
+    runs = mlflow.search_runs(experiment_names=[m["reg_experiment"]], order_by=["metrics.cv_rmse ASC"])
+    lin = runs[runs["tags.mlflow.runName"].isin(LINEAR)].iloc[0]
+    joblib.dump(mlflow.sklearn.load_model(f"runs:/{lin['run_id']}/model"), out / "regressor_linear.joblib")
+    print(f"regression lineaire ({lin['tags.mlflow.runName']}) -> {out / 'regressor_linear.joblib'}")
 
 
 if __name__ == "__main__":

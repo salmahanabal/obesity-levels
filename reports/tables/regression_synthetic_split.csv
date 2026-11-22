@@ -1,0 +1,5 @@
+modele,groupe,n,rmse,mae,r2
+Lasso (lineaire),synthetique (proxy),470,17.951,14.281,0.524
+Lasso (lineaire),collecte (proxy),157,18.282,14.051,0.166
+Champion (non lineaire),synthetique (proxy),470,6.807,3.99,0.932
+Champion (non lineaire),collecte (proxy),157,15.177,10.737,0.425

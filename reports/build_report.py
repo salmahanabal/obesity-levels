@@ -40,9 +40,9 @@ pdfmetrics.registerFontFamily("DV", normal="DV", bold="DV-B", italic="DV-I", bol
 ss = getSampleStyleSheet()
 BODY = ParagraphStyle("body", parent=ss["BodyText"], fontName="DV", fontSize=9.8, leading=14,
                       alignment=TA_JUSTIFY, spaceAfter=5)
-H1 = ParagraphStyle("h1", parent=ss["Heading1"], fontName="DV-B", fontSize=14, spaceBefore=10, spaceAfter=6,
+H1 = ParagraphStyle("h1", parent=ss["Heading1"], fontName="DV-B", fontSize=14, spaceBefore=10, spaceAfter=6, keepWithNext=1,
                     textColor=colors.HexColor("#1f3a5f"))
-H2 = ParagraphStyle("h2", parent=ss["Heading2"], fontName="DV-B", fontSize=11, spaceBefore=6, spaceAfter=4,
+H2 = ParagraphStyle("h2", parent=ss["Heading2"], fontName="DV-B", fontSize=11, spaceBefore=6, spaceAfter=4, keepWithNext=1,
                     textColor=colors.HexColor("#1f3a5f"))
 TITLE = ParagraphStyle("title", parent=ss["Title"], fontName="DV-B", fontSize=20, leading=25, spaceAfter=8)
 CAP = ParagraphStyle("cap", parent=BODY, fontSize=8, leading=10, textColor=colors.grey, alignment=0)
@@ -84,7 +84,7 @@ def f3(x):
 
 # ------------------------------------------------------------------ page de titre
 p("Prédire le niveau d'obésité et le poids à partir des habitudes de vie", TITLE)
-p("Classification multiclasse, régression linéaire et MLOps léger", H2)
+p("Classification multiclasse, régression du poids et MLOps léger", H2)
 p("Réalisé par HANABAL Salma · Dépôt : github.com/salmahanabal/obesity-levels", CAP)
 story.append(Spacer(1, 6))
 
@@ -95,7 +95,7 @@ p("L'obésité est un enjeu de santé publique majeur. Le jeu de données UCI <i
   "transport et antécédents familiaux. La cible est un niveau d'obésité en sept classes ordonnées, du poids "
   "insuffisant à l'obésité de type III.")
 p("<b>Problématique.</b> Dans quelle mesure les habitudes alimentaires et le mode de vie permettent-ils de "
-  "prédire le niveau d'obésité (classification multiclasse) et le poids (régression linéaire), et ces deux "
+  "prédire le niveau d'obésité (classification multiclasse) et le poids (régression), et ces deux "
   "modélisations sont-elles cohérentes ? Nous suivons le flux complet exploration, préprocessing, "
   "modélisation, évaluation et analyse critique, complété par un suivi d'expériences (MLflow), une API, un "
   "conteneur Docker, des tests et une intégration continue.")
@@ -168,19 +168,42 @@ p("<b>SVM : One-vs-Rest ou One-vs-One.</b> En validation croisée, le F1 macro e
   f"{f3(sv.iloc[0, 1])} pour le SVC natif (One-vs-One interne), {f3(sv.iloc[1, 1])} pour One-vs-Rest et "
   f"{f3(sv.iloc[2, 1])} pour One-vs-One explicite, avec des écarts-types d'environ 0,03 à 0,04 : les "
   "différences sont inférieures à la variabilité, le choix de la stratégie est sans effet notable.")
-p("4.2 Régression linéaire du poids (pipeline B)", H2)
+p("4.2 Régression du poids (pipeline B)", H2)
 r = pd.read_csv(TAB / "regression_comparison.csv")
 rt = pd.DataFrame({"Modèle": r["model"], "MAE (test)": r["test_mae"].map(lambda x: f"{x:.1f}".replace(".", ",")),
                    "RMSE (test)": r["test_rmse"].map(lambda x: f"{x:.1f}".replace(".", ",")),
                    "R² (test)": r["test_r2"].map(f3), "R² (train)": r["train_r2"].map(f3)})
-table(rt, None, "Tableau 3 — Régressions Linear, Ridge et Lasso (poids en kg).")
-p("Les trois modèles sont quasi identiques : la régularisation n'apporte rien car les données sont peu "
+table(rt, None, "Tableau 3 — Régressions linéaires (Linear, Ridge, Lasso) et non linéaires (poids en kg).")
+p("<b>Modèles linéaires.</b> Les trois modèles linéaires sont quasi identiques : la régularisation n'apporte rien car les données sont peu "
   "colinéaires (VIF maximal de 7,0, pour <i>CALC_Sometimes</i>) et le modèle ne sur-apprend pas. L'OLS "
   "statsmodels (R² d'apprentissage 0,58 avec toutes les indicatrices) fournit coefficients, intervalles de "
   "confiance à 95 % et VIF. Le test de Breusch-Pagan révèle une <b>hétéroscédasticité marquée</b> "
   "(p ≈ 7·10⁻³⁶) ; une cible en log(poids) améliore légèrement le test (RMSE 17,7 kg, R² 0,54).")
 fig("model_residuals_ols.png", 15.5, "Figure 2 — Diagnostics de l'OLS : résidus contre prédictions, QQ-plot, "
     "histogramme des résidus.")
+rr = r.set_index("model")
+rs = pd.read_csv(TAB / "regression_synthetic_split.csv")
+rs_c = rs[rs["modele"].str.startswith("Champion")].set_index("groupe")
+rs_l = rs[rs["modele"].str.startswith("Lasso")].set_index("groupe")
+f1 = lambda x: f"{x:.1f}".replace(".", ",")
+p("<b>Modèles non linéaires.</b> Comme l'erreur linéaire est élevée, quatre modèles non linéaires sont "
+  "ajoutés (forêt aléatoire, gradient boosting, SVR, réseau de neurones), optimisés par validation croisée sur "
+  "le RMSE. La forêt aléatoire est le champion : RMSE de "
+  f"{f1(rr.loc['RandomForest', 'test_rmse'])} kg et R² de {f3(rr.loc['RandomForest', 'test_r2'])} sur le test, "
+  f"contre {f1(rr.loc['LinearRegression', 'test_rmse'])} kg et {f3(rr.loc['LinearRegression', 'test_r2'])} "
+  "pour la régression linéaire. Mais ce gain est trompeur : sur les lignes jugées synthétiques l'erreur n'est "
+  f"que de {f1(rs_c.loc['synthetique (proxy)', 'rmse'])} kg, alors qu'elle reste de "
+  f"{f1(rs_c.loc['collecte (proxy)', 'rmse'])} kg (R² {f3(rs_c.loc['collecte (proxy)', 'r2'])}) sur les lignes "
+  "collectées. Les lignes synthétiques sont des interpolations de lignes voisines, retrouvées dans "
+  "l'apprentissage : un modèle flexible les mémorise. Sur les lignes collectées, le gain réel est de "
+  f"{f1(rs_l.loc['collecte (proxy)', 'rmse'])} à {f1(rs_c.loc['collecte (proxy)', 'rmse'])} kg d'erreur.")
+st_ = rs.pivot(index="modele", columns="groupe", values="rmse").round(1)
+st_ = pd.DataFrame({"Modèle": ["Lasso (linéaire)", "Forêt aléatoire (champion)"],
+                    "RMSE lignes synthétiques (kg)": [f1(st_.loc["Lasso (lineaire)", "synthetique (proxy)"]),
+                                                      f1(st_.loc["Champion (non lineaire)", "synthetique (proxy)"])],
+                    "RMSE lignes collectées (kg)": [f1(st_.loc["Lasso (lineaire)", "collecte (proxy)"]),
+                                                    f1(st_.loc["Champion (non lineaire)", "collecte (proxy)"])]})
+table(st_, None, "Tableau 4 — Erreur de poids selon le type de ligne (proxy de synthétique, jeu de test).")
 
 # ------------------------------------------------------------------ évaluation
 p("5. Évaluation", H1)
@@ -191,25 +214,33 @@ p("Le gradient boosting est le champion (F1 macro de 0,775 sur le test, AUC OvR 
   "performance doit être relativisée : c'est la classe quasi exclusivement féminine (section 6).")
 fig("model_cm_GradientBoosting.png", 16, "Figure 3 — Matrice de confusion du gradient boosting (comptes et "
     "normalisée par ligne).")
-p("<b>Cohérence (pipeline C).</b> Prédire le poids puis en déduire la classe donne une accuracy de 0,228 "
-  "(±1 classe : 0,707 ; F1 macro 0,193), contre 0,781 (±1 classe : 0,884) pour la classification directe. "
-  "Une erreur moyenne de 18 kg sur le poids déplace l'IMC de plusieurs points, souvent d'une classe à "
-  "l'autre. Les deux démarches ne sont donc pas cohérentes à l'échelle individuelle : les habitudes de vie "
-  "renseignent mieux sur la <i>classe</i> que sur le <i>poids exact</i>.")
+cons = pd.read_csv(TAB / "consistency.csv", index_col=0)
+ca, cc = cons.loc["A_classifieur"], cons.loc["C_poids_predit"]
+p("<b>Cohérence (pipeline C).</b> Prédire le poids puis en déduire la classe donne, avec la régression "
+  f"championne (forêt aléatoire), une accuracy de {f3(cc['accuracy'])} (±1 classe : {f3(cc['accuracy_pm1'])} ; "
+  f"F1 macro {f3(cc['f1_macro'])}), contre {f3(ca['accuracy'])} (±1 classe : {f3(ca['accuracy_pm1'])}) pour la "
+  "classification directe. Avec la régression linéaire (erreur d'environ 18 kg), la classe dérivée était très "
+  "mauvaise (accuracy de 0,228, ±1 classe : 0,707) : une erreur de 18 kg déplace l'IMC de plusieurs points, "
+  "souvent d'une classe à l'autre. La précision du poids conditionne donc la cohérence. Les deux démarches "
+  "restent différentes : la classification directe est plus exacte, alors que le poids prédit donne un "
+  "meilleur ±1 classe.")
 
 # ------------------------------------------------------------------ analyse critique
 p("6. Analyse critique", H1)
 p("<b>Surapprentissage.</b> L'arbre et la forêt atteignent un F1 macro de 0,998 sur l'apprentissage "
   "(0,987 pour le gradient boosting, 0,96 pour le MLP) contre 0,71 à 0,78 sur le test. La courbe d'apprentissage du classifieur montre une validation encore "
   "croissante avec la taille des données, sans rattraper l'apprentissage : le modèle bénéficierait de plus "
-  "de données. À l'inverse, pour la régression les courbes se rejoignent à environ −17,5 kg : il n'y a pas "
-  "de surapprentissage mais un biais élevé (le modèle linéaire sous-apprend).")
+  "de données. Pour la régression, la forêt aléatoire "
+  "sur-apprend nettement (RMSE d'environ 3 kg en apprentissage contre 9 kg en validation) et sa validation "
+  "progresse très vite avec la taille des données : avec plus de lignes, plus de voisins synthétiques "
+  "proches se retrouvent dans l'apprentissage. À l'inverse, le modèle linéaire, lui, sous-apprend "
+  "(erreur d'environ 17,5 kg en apprentissage comme en test).")
 fig("analysis_learning_curves.png", 15.5, "Figure 4 — Courbes d'apprentissage du classifieur champion et de "
     "la régression champion.")
 p("<b>Données synthétiques.</b> Sur le test, le champion obtient une accuracy de 0,86 (F1 macro 0,73) sur les "
   "lignes que l'heuristique juge synthétiques, contre 0,56 (F1 macro 0,40) sur les lignes jugées collectées. "
   "Les scores globaux sont donc optimistes : SMOTE crée des interpolations proches les unes des autres, "
-  "retrouvées à la fois dans l'apprentissage et le test. Ce constat vaut aussi pour la validation croisée.")
+  "retrouvées à la fois dans l'apprentissage et le test. Ce constat vaut aussi pour la validation croisée, et il est encore plus net pour le poids (tableau 4).")
 p("<b>Biais de genre.</b> Le F1 macro est de 0,77 pour les femmes et de 0,62 pour les hommes. Le genre est la "
   "deuxième variable par permutation sur le test (0,19 de perte de F1, après l'âge à 0,34) : le modèle l'utilise comme "
   "raccourci pour les classes quasi exclusivement féminines ou masculines. Son équité n'est pas garantie.")
@@ -220,10 +251,10 @@ it = pd.DataFrame({
     "Rang régression (|coef.|)": imp["rang_abs_coef_regression"],
 })
 p("<b>Facteurs clés.</b> Les classements diffèrent selon la méthode : l'âge puis le genre dominent par "
-  "permutation, tandis que la régression retient d'abord "
+  "permutation, tandis que la régression linéaire retient d'abord "
   "l'antécédent familial de surpoids (environ 20 kg d'écart), puis le transport et le grignotage. Les "
   "classements sont à interpréter avec prudence : variables corrélées et données synthétiques.")
-table(it, None, "Tableau 4 — Six variables les plus importantes (permutation sur le test) et leurs rangs.")
+table(it, None, "Tableau 5 — Six variables les plus importantes (permutation sur le test) et leurs rangs.")
 l = pd.read_csv(TAB / "leakage_comparison.csv")
 p("<b>Fuite de données.</b> Avec le poids et la taille, la forêt atteint une accuracy de "
   f"{f3(l.iloc[1]['test_accuracy'])} et une accuracy à ±1 classe de {f3(l.iloc[1]['test_accuracy_pm1'])}, "
@@ -254,13 +285,16 @@ for t in [
 # ------------------------------------------------------------------ conclusion
 p("8. Conclusion, limites et recommandations", H1)
 p("Les habitudes de vie permettent de prédire le niveau d'obésité de façon modérée (F1 macro d'environ 0,78 "
-  "pour le gradient boosting comme pour la forêt aléatoire, sans gain avec des modèles plus puissants) mais "
-  "pas le poids avec précision (erreur d'environ 18 kg), et les deux "
-  "modélisations ne sont pas cohérentes individuellement (accuracy de 0,23 pour la classe dérivée du poids).")
+  "pour le gradient boosting comme pour la forêt aléatoire, sans gain avec des modèles plus puissants). "
+  "Le poids n'est estimé avec une précision correcte que par un modèle non linéaire (erreur d'environ 9,6 kg "
+  "au global, mais d'environ 15 kg sur les lignes réellement collectées, contre 18 kg pour le modèle linéaire). "
+  "La classe déduite du poids prédit atteint alors une accuracy de 0,62, sous celle de la classification "
+  "directe (0,78).")
 p("<b>Limites.</b> (i) Les trois quarts des données sont synthétiques : les scores sont optimistes et un test "
   "composé uniquement de données collectées serait plus honnête (accuracy de 0,56 mesurée sur ce sous-groupe). "
   "(ii) Le biais de genre sur les classes extrêmes rend les résultats non transférables. (iii) L'indicateur "
-  "de lignes synthétiques est une heuristique. (iv) Le modèle de régression est linéaire et hétéroscédastique.")
+  "de lignes synthétiques est une heuristique. (iv) Le gain des modèles non linéaires pour le poids est surtout dû aux lignes synthétiques ; le modèle "
+  "linéaire, lui, est hétéroscédastique et peu précis.")
 p("<b>Recommandations.</b> Collecter davantage de données réelles et évaluer sur des données non synthétiques ; "
   "traiter l'IMC comme cible continue ou ordinale plutôt que sept classes indépendantes ; tester des approches "
   "ordinales et des transformations de la cible (log) ; auditer l'équité du modèle par genre avant tout usage.")

@@ -80,7 +80,8 @@ def render(res: pd.DataFrame, truth: pd.Series | None, true_weight: pd.Series | 
     _show(fig)
     st.info("**Comment lire ce graphique :** un second modèle estime le poids de chaque personne à "
             "partir de ses habitudes et de sa taille. **Attention :** il se trompe en moyenne "
-            "d'environ 18 kg. C'est une estimation grossière, à ne jamais prendre pour une mesure.")
+            "d'environ 10 kg sur le jeu de test, et d'environ 15 kg sur des profils réellement collectés "
+            "(les lignes synthétiques sont plus faciles). C'est une estimation, à ne jamais prendre pour une mesure.")
 
     wc = weight_comparison(res["poids"], true_weight) if true_weight is not None else None
     if wc is not None and wc["n"] > 0:

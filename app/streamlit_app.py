@@ -135,15 +135,15 @@ with tab2:
     r1, r2 = st.columns(2)
     r1.success(f"**Niveau prédit : {fr_class(classe)}**\n\nDéduit uniquement des habitudes de vie "
                "(sans le poids ni la taille).")
-    r2.info(f"**Poids estimé : {poids:.0f} kg** (IMC {imc:.1f})\n\nÀ ± 18 kg environ : c'est une "
-            "estimation grossière.")
+    r2.info(f"**Poids estimé : {poids:.0f} kg** (IMC {imc:.1f})\n\nErreur typique : environ 10 kg "
+            "(15 kg sur des profils réels). C'est une estimation, pas une mesure.")
     if real_w is not None:
         diff = poids - real_w
         d1, d2, d3 = st.columns(3)
         d1.metric("Poids estimé", f"{poids:.0f} kg")
         d2.metric("Vrai poids", f"{real_w:.0f} kg")
         d3.metric("Écart", f"{diff:+.0f} kg")
-        st.caption("Une erreur de l'ordre de 18 kg est normale pour ce modèle : il ne connaît pas le poids, "
+        st.caption("Une erreur de 10 à 15 kg est fréquente pour ce modèle : il ne connaît pas le poids, "
                    "seulement la taille et les habitudes de vie.")
     if hasattr(clf, "predict_proba"):
         p = pd.Series(clf.predict_proba(person[list(clf.feature_names_in_)])[0], index=clf.classes_)

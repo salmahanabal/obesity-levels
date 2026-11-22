@@ -68,7 +68,7 @@ Ce projet suit tout le flux **exploration, préprocessing, modélisation, évalu
 Trois questions sont traitées :
 
 1. Peut-on prédire le **niveau d'obésité** (7 classes) à partir des seules habitudes, sans le poids ni la taille ?
-2. Peut-on estimer le **poids** par une régression linéaire ?
+2. Peut-on estimer le **poids** par une régression, linéaire puis non linéaire ?
 3. Les deux réponses sont-elles **cohérentes** : l'IMC calculé à partir du poids prédit donne-t-il la même classe que le classifieur ?
 
 Le rapport complet (en français, 6 pages) est disponible [ici](reports/rapport_obesity_levels.pdf).
@@ -77,7 +77,7 @@ Le rapport complet (en français, 6 pages) est disponible [ici](reports/rapport_
 
 - **Aucune fuite de données.** La classe est définie à partir de l'IMC (poids / taille²) : donner le poids ou la taille au classifieur serait tricher. Ils sont exclus, et un run de référence séparé qui les inclut montre à quel point la fuite gonfle le score (accuracy 0,95 au lieu de 0,78).
 - **Un seul découpage, ajusté une fois.** Un découpage stratifié 70/30 (graine 42) après suppression de 24 doublons. Le préprocessing est ajusté sur le train uniquement.
-- **Choix du modèle honnête.** Cinq modèles sont optimisés par `GridSearchCV` (F1 macro, 5 plis). Le champion est choisi sur la validation croisée, jamais sur le test.
+- **Choix du modèle honnête.** Cinq classifieurs (et sept régresseurs pour le poids) sont optimisés par `GridSearchCV` (5 plis). Le champion est choisi sur la validation croisée, jamais sur le test.
 - **Analyse critique.** Surapprentissage, analyse des erreurs, données synthétiques, biais de genre et facteurs clés sont mesurés et discutés, pas seulement rapportés.
 - **MLOps de base.** Suivi MLflow et registre, API FastAPI à validation stricte, interface de test Streamlit, Docker, tests et CI.
 
@@ -103,7 +103,7 @@ Trois propriétés de ce jeu de données structurent tout le projet :
 | Pipeline | Tâche | Cible | Variables |
 | --- | --- | --- | --- |
 | A | Classification | `NObeyesdad` | tout sauf `Weight` et `Height` |
-| B | Régression linéaire | `Weight` | tout sauf la classe (avec `Height`) |
+| B | Régression (linéaire et non linéaire) | `Weight` | tout sauf la classe (avec `Height`) |
 | C | Cohérence | classe dérivée | IMC du poids prédit, comparé à A |
 
 Un quatrième run, tagué `leakage_reference=true` dans MLflow, ajoute `Weight` et `Height` à A. Il ne sert qu'au contraste et n'est jamais retenu.
@@ -133,18 +133,28 @@ Matrice de confusion du Gradient Boosting :
 
 ### Régression (pipeline B)
 
+| Modèle | RMSE (test) | MAE | R² | RMSE lignes synthétiques | RMSE lignes collectées |
+| --- | --- | --- | --- | --- | --- |
+| Régression linéaire (Lasso) | 18,0 kg | 14,2 kg | 0,52 | 18,0 kg | 18,3 kg |
+| **Random Forest (champion)** | **9,6 kg** | **5,7 kg** | **0,87** | 6,8 kg | 15,2 kg |
+| Gradient Boosting | 10,2 kg | 6,7 kg | 0,85 | | |
+| MLP | 11,3 kg | 7,4 kg | 0,81 | | |
+| SVR | 11,7 kg | 7,9 kg | 0,80 | | |
+
 Linear, Ridge et Lasso sont quasi identiques : RMSE d'environ 18 kg et R² d'environ 0,52 sur le test. La régularisation n'apporte rien car les variables sont peu colinéaires (VIF maximal 7,0). Les résidus sont nettement hétéroscédastiques (Breusch-Pagan p ≈ 7·10⁻³⁶). Une cible en log(poids) aide légèrement (RMSE 17,7 kg, R² 0,54).
+
+Les modèles non linéaires divisent l'erreur par deux environ, mais **l'essentiel du gain vient des lignes synthétiques** : ce sont des interpolations de lignes voisines qui se trouvent aussi dans l'entraînement, qu'un modèle flexible mémorise. Sur les lignes jugées collectées, la forêt aléatoire passe de 18,3 kg à 15,2 kg d'erreur (R² de 0,17 à 0,43) : un gain réel mais bien plus modeste.
 
 ### Cohérence (pipeline C)
 
-Prédire le poids puis en déduire la classe donne une accuracy de **0,23** (0,71 à une classe près), contre 0,78 pour la classification directe. Une erreur d'environ 18 kg déplace l'IMC de plusieurs points, souvent d'une classe entière. Les habitudes renseignent mieux sur la *classe* que sur le *poids exact*.
+Prédire le poids puis en déduire la classe donne une accuracy de **0,62** (0,91 à une classe près) avec la régression par forêt aléatoire, contre 0,78 (0,88 à une classe près) pour la classification directe. Avec la régression linéaire, elle n'était que de 0,23 (0,71 à une classe près) : une erreur d'environ 18 kg déplace l'IMC de plusieurs points, souvent d'une classe entière. Plus l'estimation du poids est bonne, plus les deux démarches concordent, mais la classification directe reste plus exacte.
 
 ### Analyse critique
 
 | Question | Constat |
 | --- | --- |
 | Surapprentissage | Les arbres atteignent 0,998 de F1 macro en apprentissage contre 0,71 à 0,78 en test. La courbe d'apprentissage monte encore : plus de données aideraient. |
-| Lignes synthétiques | Accuracy 0,86 sur les lignes jugées synthétiques contre 0,56 sur les lignes jugées collectées (heuristique). Les scores globaux sont optimistes. |
+| Lignes synthétiques | Accuracy 0,86 sur les lignes jugées synthétiques contre 0,56 sur les lignes jugées collectées (heuristique). Pour le poids, erreur de 6,8 kg contre 15,2 kg. Les scores globaux sont optimistes. |
 | Biais de genre | F1 macro de 0,77 pour les femmes et 0,62 pour les hommes. Le genre est la deuxième variable par permutation (après l'âge). |
 | Facteurs clés | L'âge et le genre dominent par permutation. La régression place l'antécédent familial de surpoids en premier (environ 20 kg). |
 | Fuite | Avec poids et taille : accuracy 0,95. Sans : 0,78. |

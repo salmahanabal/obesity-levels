@@ -68,7 +68,7 @@ This project follows the whole workflow **exploration, preprocessing, modeling, 
 Three questions are answered:
 
 1. Can the **obesity level** (7 classes) be predicted from habits alone, without weight and height?
-2. Can the **weight** be estimated with a linear regression?
+2. Can the **weight** be estimated, with a linear regression and with non-linear models?
 3. Are the two answers **consistent**: does the BMI computed from the predicted weight give the same class as the classifier?
 
 The full report (in French, 6 pages) is available [here](reports/rapport_obesity_levels.pdf).
@@ -77,7 +77,7 @@ The full report (in French, 6 pages) is available [here](reports/rapport_obesity
 
 - **No data leakage.** The class is defined from the BMI (weight / height²), so giving weight or height to the classifier would be cheating. They are excluded, and a separate reference run that includes them shows how much the leakage inflates the score (accuracy 0.95 instead of 0.78).
 - **One split, fitted once.** A single stratified 70/30 split (seed 42) after removing 24 duplicates. The preprocessing is fitted on the training set only.
-- **Honest model choice.** Five models are tuned with `GridSearchCV` (macro F1, 5 folds). The champion is chosen on cross-validation, never on the test set.
+- **Honest model choice.** Five classifiers (and seven regressors for the weight) are tuned with `GridSearchCV` (5 folds). The champion is chosen on cross-validation, never on the test set.
 - **Critical analysis.** Overfitting, error analysis, synthetic data, gender bias and key factors are measured and discussed, not just reported.
 - **MLOps basics.** MLflow tracking and model registry, a FastAPI service with strict validation, a Streamlit test interface, Docker, tests and CI.
 
@@ -103,7 +103,7 @@ Three properties of this dataset shape the whole project:
 | Pipeline | Task | Target | Variables |
 | --- | --- | --- | --- |
 | A | Classification | `NObeyesdad` | everything except `Weight` and `Height` |
-| B | Linear regression | `Weight` | everything except the class (with `Height`) |
+| B | Regression (linear and non-linear) | `Weight` | everything except the class (with `Height`) |
 | C | Consistency | derived class | BMI from the predicted weight, compared with A |
 
 A fourth run, tagged `leakage_reference=true` in MLflow, adds `Weight` and `Height` to A. It is only used for contrast and is never selected.
@@ -133,18 +133,28 @@ Gradient Boosting confusion matrix:
 
 ### Regression (pipeline B)
 
+| Model | RMSE (test) | MAE | R² | RMSE on synthetic rows | RMSE on collected rows |
+| --- | --- | --- | --- | --- | --- |
+| Linear regression (Lasso) | 18.0 kg | 14.2 kg | 0.52 | 18.0 kg | 18.3 kg |
+| **Random Forest (champion)** | **9.6 kg** | **5.7 kg** | **0.87** | 6.8 kg | 15.2 kg |
+| Gradient Boosting | 10.2 kg | 6.7 kg | 0.85 | | |
+| MLP | 11.3 kg | 7.4 kg | 0.81 | | |
+| SVR | 11.7 kg | 7.9 kg | 0.80 | | |
+
 Linear, Ridge and Lasso are almost identical: RMSE of about 18 kg and R² of about 0.52 on the test set. Regularisation brings nothing because the variables are barely collinear (maximum VIF 7.0). The residuals are clearly heteroscedastic (Breusch-Pagan p ≈ 7·10⁻³⁶). A log(weight) target helps slightly (RMSE 17.7 kg, R² 0.54).
+
+Non-linear models cut the error roughly in half, but **most of the gain comes from the synthetic rows**: they are interpolations of neighbouring rows that also sit in the training set, so a flexible model memorises them. On rows judged collected, the Random Forest goes from 18.3 kg to 15.2 kg of error (R² from 0.17 to 0.43), a real but much smaller gain.
 
 ### Consistency (pipeline C)
 
-Predicting the weight and then deriving the class gives an accuracy of **0.23** (0.71 within one class), against 0.78 for the direct classification. An error of about 18 kg moves the BMI by several points, often by a whole class. Habits tell more about the *class* than about the *exact weight*.
+Predicting the weight and then deriving the class gives an accuracy of **0.62** (0.91 within one class) with the Random Forest regression, against 0.78 (0.88 within one class) for the direct classification. With the linear regression it was only 0.23 (0.71 within one class): an error of about 18 kg moves the BMI by several points, often by a whole class. The better the weight estimate, the more consistent the two approaches become, but the direct classification stays more exact.
 
 ### Critical analysis
 
 | Question | Finding |
 | --- | --- |
 | Overfitting | Trees reach 0.998 macro F1 on training against 0.71 to 0.78 on test. The learning curve keeps rising: more data would help. |
-| Synthetic rows | Accuracy 0.86 on rows judged synthetic against 0.56 on rows judged collected (heuristic). Global scores are optimistic. |
+| Synthetic rows | Accuracy 0.86 on rows judged synthetic against 0.56 on rows judged collected (heuristic). For the weight, error of 6.8 kg against 15.2 kg. Global scores are optimistic. |
 | Gender bias | Macro F1 of 0.77 for women and 0.62 for men. Gender is the second most important variable by permutation (after age). |
 | Key factors | Age and gender dominate by permutation. The regression puts family history of overweight first (about 20 kg). |
 | Leakage | With weight and height: accuracy 0.95. Without: 0.78. |
